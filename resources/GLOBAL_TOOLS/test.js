@@ -168,22 +168,23 @@ function generateTimeSlots() {
 }
 
 // 生成配置数据
-function generateConfig(courses) {
-    let maxWeek = 0;
-    courses.forEach(course => {
-        course.weeks.forEach(week => {
-            if (week > maxWeek) maxWeek = week;
-        });
-    });
-    
+function generateConfig(StartDate) {
+    let startTime = 0;
+    const year = new Date().getFullYear();
+    if(StartDate == "1（上学期）"){
+        startTime = "09-01";
+    }
+    else
+        startTime = "02-14";
     return {
-        semesterTotalWeeks: maxWeek > 0 ? maxWeek : 20,
+        semesterStartDate: `${year}-${startTime}`,
+        semesterTotalWeeks: 20,//不确定以后会不会改，先留着
         defaultClassDuration: 45,
         defaultBreakDuration: 10,
         firstDayOfWeek: 1
     };
 }
-
+//登录检测
 async function login(){
     const promptMessage =`
 使用前请注意：
@@ -193,8 +194,7 @@ async function login(){
 3、导入完成后如学期周数等信息错误请前往设置调整
 4、本工具仅支持导入当前学期课程
 5、学校服务器很烂,课表数据可能加载较慢,请耐心等待
-6、如果没有进入界面请前往学校学生门户登录
-   并在新教务系统中打开课表后尝试导入
+6、如果没有进入界面请前往学校学生门户登录并在新教务系统中打开课表后尝试导入
 `;
     const wspc = "authserver.wspc.edu.cn";
     const timeTable = "jw.wspc.edu.cn";
@@ -218,6 +218,23 @@ async function login(){
     else {
         AndroidBridge.showToast("取消导入操作");
         return false;
+    }
+}
+//设置起始日期
+async function setStartDate() {
+    const semesters = ["1（上学期）", "2（下学期）"];
+    const semesterIndex = await window.AndroidBridgePromise.showSingleSelection(
+        "选择学期", 
+        JSON.stringify(semesters),
+        -1
+    );
+    if (semesterIndex !== -1 && semesterIndex>0) {
+    return semesters[semesterIndex];
+    }
+    else
+    {
+    AndroidBridge.showToast("取消导入操作");
+    return false;
     }
 }
 
@@ -253,7 +270,7 @@ async function saveConfig(config) {
         return false;
     }
 }
-// 主函数
+
 async function runImportFlow() {
     const loginwindows = await login();
     if(!loginwindows){
@@ -282,7 +299,11 @@ async function runImportFlow() {
         return;
     }
     // 生成配置数据
-    const config = generateConfig(finalCourses);
+    const StartDate = await setStartDate();//设置学期
+    if(!StartDate){
+        return;
+    }
+    const config = generateConfig(StartDate);
     // 输出课程数据结构
     const saveResult = await saveCourses(finalCourses);
     if(!saveResult){
