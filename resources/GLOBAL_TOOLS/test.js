@@ -199,25 +199,26 @@ async function login(){
     const wspc = "authserver.wspc.edu.cn";
     const timeTable = "jw.wspc.edu.cn";
     const currentHost = window.location.host;
-    if (currentHost == wspc) {
+    const confirmed = await window.AndroidBridgePromise.showAlert(
+    "使用前请注意",
+    promptMessage,
+    "好的"
+    );
+    if (confirmed) {
+        if (currentHost == wspc) {
         AndroidBridge.showToast("请先登录");
         return false;
-    }
-    else if (currentHost ==timeTable) {
-        const confirmed = await window.AndroidBridgePromise.showAlert(
-        "使用前请注意",
-        promptMessage,
-        "好的"
-        );
-        if (confirmed) {
-            return true;
-        } else {
-            AndroidBridge.showToast("取消导入操作");
-            return false;
         }
+        else if (currentHost ==timeTable) {
+            return true;
+        }
+        else
+            AndroidBridge.showToast("请在学校的网站内导入");
+        }
+    else {
+        AndroidBridge.showToast("取消导入操作");
+        return false;
     }
-    else
-        AndroidBridge.showToast("请在学校的网站内导入");
 }
 
 async function saveCourses(parsedCourses) {
