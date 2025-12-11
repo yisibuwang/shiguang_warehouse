@@ -280,7 +280,7 @@ async function runImportFlow() {
         return;
     }
     // 生成配置数据
-    const config = generateConfig(courses);
+    const config = generateConfig(finalCourses);
     // 输出课程数据结构
     const saveResult = await saveCourses(finalCourses);
     if(!saveResult){
