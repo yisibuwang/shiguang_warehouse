@@ -296,6 +296,7 @@ async function runImportFlow() {
     if(!configResult){
         return;
     }
+    AndroidBridge.showToast("成功导入课表！请前往设置调整开学时间等信息！");
     AndroidBridge.notifyTaskCompletion();
 }
 
