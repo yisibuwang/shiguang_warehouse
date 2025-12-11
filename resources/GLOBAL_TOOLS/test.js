@@ -185,7 +185,6 @@ function generateConfig(courses) {
 }
 
 async function login(){
-        console.log("text:显示公告弹窗");
         const confirmed = await window.AndroidBridgePromise.showAlert(
             "重要通知",
             "开始导入前，请确保自己已经登录并进入课表",
@@ -234,8 +233,8 @@ async function saveConfig(config) {
     }
 }
 // 主函数
-function runImportFlow() {
-    const loginwindows = login();
+async function runImportFlow() {
+    const loginwindows = await login();
     if(!loginwindows){
         return;
     }
@@ -248,24 +247,20 @@ function runImportFlow() {
     // 生成配置数据
     const config = generateConfig(finalCourses);
     // 输出课程数据结构
-    console.log(JSON.stringify(finalCourses, null, 2));
-    const saveResult = saveCourses(finalCourses);
+    const saveResult = await saveCourses(finalCourses);
     if(!saveResult){
         return;
     }
     // 输出时间段数据结构
-    console.log(JSON.stringify(timeSlots, null, 2));
-    const timeSlotResult = importPresetTimeSlots(timeSlots);
+    const timeSlotResult = await importPresetTimeSlots(timeSlots);
     if(!timeSlotResult){
         return;
     }
     // 输出课表配置数据结构
-    console.log(JSON.stringify(config, null, 2));
-    const configResult = saveConfig(config);
+    const configResult = await saveConfig(config);
     if(!configResult){
         return;
     }
-    AndroidBridge.showToast(`课程导入成功，共导入 ${courses.length} 门课程！`);
     AndroidBridge.notifyTaskCompletion();
 }
 
