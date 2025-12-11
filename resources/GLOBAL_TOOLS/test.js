@@ -191,10 +191,8 @@ async function login(){
             "好的"
         );
         if (confirmed) {
-            console.log("用户点击了确认按钮。Alert Promise Resolved: " + confirmed);
             return true; // 成功时返回 true
         } else {
-            console.log("用户点击了取消按钮或关闭了弹窗。Alert Promise Resolved: " + confirmed);
             AndroidBridge.showToast("取消导入操作");
             return false; // 用户取消时返回 false
         }
@@ -240,10 +238,26 @@ async function runImportFlow() {
     }
     // 提取课程数据
     const rawCourses = extractCourses();
+    if(rawCourses.length === 0){
+        AndroidBridge.showToast("未找到任何课程! 请确认已登录并进入课表页面。");
+        return;
+    }
     const mergedCourses = mergeCourses(rawCourses);
+    if(mergedCourses.length === 0){
+        AndroidBridge.showToast("课程合并失败，未生成任何课程数据！");
+        return;
+    }
     const finalCourses = sortCourses(mergedCourses);
+    if(finalCourses.length === 0){
+        AndroidBridge.showToast("课程排序失败，未生成任何课程数据！");
+        return;
+    } 
     // 生成时间段数据
     const timeSlots = generateTimeSlots();
+    if(timeSlots.length === 0){
+        AndroidBridge.showToast("时间段生成失败，未生成任何时间段数据！");
+        return;
+    }
     // 生成配置数据
     const config = generateConfig(finalCourses);
     // 输出课程数据结构
