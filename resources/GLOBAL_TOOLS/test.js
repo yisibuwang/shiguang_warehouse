@@ -168,17 +168,15 @@ function generateTimeSlots() {
 }
 
 // 生成配置数据
-function generateConfig(StartDate) {
-    let startTime = 0;
-    const year = new Date().getFullYear();
-    if(StartDate == "1（上学期）"){
-        startTime = "09-01";
-    }
-    else
-        startTime = "02-14";
+function generateConfig(courses) {
+    let maxWeek = 0;
+    courses.forEach(course => {
+        course.weeks.forEach(week => {
+            if (week > maxWeek) maxWeek = week;
+        });
+    });
     return {
-        semesterStartDate: `${year}-${startTime}`,
-        semesterTotalWeeks: 20,//不确定以后会不会改，先留着
+        semesterTotalWeeks: maxWeek > 0 ? maxWeek : 20,//不确定以后会不会改，先留着
         defaultClassDuration: 45,
         defaultBreakDuration: 10,
         firstDayOfWeek: 1
@@ -188,13 +186,13 @@ function generateConfig(StartDate) {
 async function login(){
     const promptMessage =`
 使用前请注意：
-
 1、开始导入前,请确保自己已经登录并进入课表
 2、导入过程中请保持网络连接畅通
 3、导入完成后如学期周数等信息错误请前往设置调整
-4、本工具仅支持导入当前学期课程
-5、学校服务器很烂,课表数据可能加载较慢,请耐心等待
-6、如果没有进入界面请前往学校学生门户登录并在新教务系统中打开课表后尝试导入
+4、导入完成后请前往设置自行设置开学时间
+5、本工具仅支持导入当前学期课程
+6、学校服务器很烂,课表数据可能加载较慢,请耐心等待
+7、如果没有进入界面请前往学校学生门户登录并在新教务系统中打开课表后尝试导入
 `;
     const wspc = "authserver.wspc.edu.cn";
     const timeTable = "jw.wspc.edu.cn";
@@ -218,23 +216,6 @@ async function login(){
     else {
         AndroidBridge.showToast("取消导入操作");
         return false;
-    }
-}
-//设置起始日期
-async function setStartDate() {
-    const semesters = ["1（上学期）", "2（下学期）"];
-    const semesterIndex = await window.AndroidBridgePromise.showSingleSelection(
-        "选择学期", 
-        JSON.stringify(semesters),
-        -1
-    );
-    if (semesterIndex !== -1 && semesterIndex>0) {
-    return semesters[semesterIndex];
-    }
-    else
-    {
-    AndroidBridge.showToast("取消导入操作");
-    return false;
     }
 }
 
@@ -299,11 +280,7 @@ async function runImportFlow() {
         return;
     }
     // 生成配置数据
-    const StartDate = await setStartDate();//设置学期
-    if(!StartDate){
-        return;
-    }
-    const config = generateConfig(StartDate);
+    const config = generateConfig(courses);
     // 输出课程数据结构
     const saveResult = await saveCourses(finalCourses);
     if(!saveResult){
