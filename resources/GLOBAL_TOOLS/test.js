@@ -185,17 +185,39 @@ function generateConfig(courses) {
 }
 
 async function login(){
+    const promptMessage =`
+使用前请注意：
+
+1、开始导入前,请确保自己已经登录并进入课表
+2、导入过程中请保持网络连接畅通
+3、导入完成后如学期周数等信息错误请前往设置调整
+4、本工具仅支持导入当前学期课程
+5、学校服务器很烂,课表数据可能加载较慢,请耐心等待
+6、如果没有进入界面请前往学校学生门户登录
+   并在新教务系统中打开课表后尝试导入
+`;
+    const wspc = "authserver.wspc.edu.cn";
+    const timeTable = "jw.wspc.edu.cn";
+    const currentHost = window.location.host;
+    if (currentHost == wspc) {
+        AndroidBridge.showToast("请先登录");
+        return false;
+    }
+    else if (currentHost ==timeTable) {
         const confirmed = await window.AndroidBridgePromise.showAlert(
-            "重要通知",
-            "开始导入前，请确保自己已经登录并进入课表",
-            "好的"
+        "使用前请注意",
+        promptMessage,
+        "好的"
         );
         if (confirmed) {
-            return true; // 成功时返回 true
+            return true;
         } else {
             AndroidBridge.showToast("取消导入操作");
-            return false; // 用户取消时返回 false
+            return false;
         }
+    }
+    else
+        AndroidBridge.showToast("请在学校的网站内导入");
 }
 
 async function saveCourses(parsedCourses) {
